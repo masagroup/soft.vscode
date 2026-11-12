@@ -183,3 +183,34 @@ No `<update>` / `<update-gh>` (no Ant), no `FROM masagroup/*` (no Dockerfile), n
 | `@types/node` | `^26.6.5` | Node typings of the extension host |
 
 Runtime: the only declared dependency is `@masagroup/ecore`; its own packages (`sax`, `async-mutex`, `id128`, `path-browserify`, `ts-results-es`, per `package-lock.json`) are bundled with it.
+
+## Interfaces
+
+Ecorium is a VS Code extension (`masagroup.ecorium`): no executable, no port and no network access. VS Code starts it when a `.ecore` file is opened in the custom editor or when one of its commands runs.
+
+| Interface | Id | Where |
+|---|---|---|
+| Custom editor | `ecorium.ecoreEditor` ("Ecorium Ecore Editor") | `*.ecore`, priority `default` |
+| Command | `ecorium.openWithEcorium` ("Open with Ecorium") | Command Palette and editor title for a `.ecore` file; Explorer context menu |
+| Command | `ecorium.openAsText` ("Open as Text") | editor title and Command Palette while Ecorium is the active editor |
+| Command | `ecorium.reload` ("Reload Model") | editor title and Command Palette while Ecorium is the active editor: drops the cached files and reloads the model |
+| Command | `ecorium.newModel` ("New Ecore Model") | Command Palette: save dialog, then a file holding an empty package opened in Ecorium |
+| Setting | `ecorium.autoNameNewElements` (boolean, default `true`) | gives new named elements a default name (`NewClass`, `newAttribute`...) |
+| Language | `.ecore` files get the `xml` language id | `contributes.languages` |
+| Diagnostics | collection `ecorium` | parse problems in the Problems view |
+| Document scheme | `ecorium-package` | read-only view of a package built into soft.ts (Ecore itself), opened by `Ctrl+Click` on one of its types |
+
+All commands are shown with the category `Ecorium` in the Command Palette. The extension contributes no keybinding: the keys of the tree (arrows, `Home`, `End`, `Enter`, `F2`, `Delete`, `Ctrl+Up` / `Ctrl+Down`, `Shift+F10`) are handled by the editor webview.
+
+### npm scripts
+
+| Script | Command |
+|---|---|
+| `compile` | `node esbuild.mjs` (development bundles with source maps) |
+| `watch` | `node esbuild.mjs --watch` |
+| `build` | `node esbuild.mjs --production` (minified bundles; run by `vscode:prepublish`) |
+| `typecheck`, `lint` | `tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.webview.json` |
+| `test` | `vitest run` (`test/**/*.test.ts`) |
+| `package` | `vsce package --no-dependencies --readme-path docs/USER_README.md` |
+| `harness` | `node scripts/harness.mjs [file.ecore] [--port 3939]` |
+| `icon` | `node scripts/make-icon.mjs` (regenerates `media/icon.png`) |
